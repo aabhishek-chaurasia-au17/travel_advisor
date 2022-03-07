@@ -38,7 +38,8 @@ const App = () => {
       setIsLoading(true);
 
       getWeatherData(coords.lat, coords.lng)
-        .then((data) => setWeatherData(data));
+        .then((data) => setWeatherData(data))
+        .catch((error) => console.log(error));
 
       getPlacesData(type, bounds.sw, bounds.ne)
         .then((data) => {
@@ -46,23 +47,24 @@ const App = () => {
           setFilteredPlaces([]);
           setRating('');
           setIsLoading(false);
-        });
+        })
+        .catch((error) => console.log(error));
     }
   }, [bounds, type]);
 
-  const onLoad = (autoC) => setAutocomplete(autoC);
+  // const onLoad = (autoC) => setAutocomplete(autoC);
 
-  const onPlaceChanged = () => {
-    const lat = autocomplete.getPlace().geometry.location.lat();
-    const lng = autocomplete.getPlace().geometry.location.lng();
+  // const onPlaceChanged = () => {
+  //   const lat = autocomplete.getPlace().geometry.location.lat();
+  //   const lng = autocomplete.getPlace().geometry.location.lng();
 
-    setCoords({ lat, lng });
-  };
+  //   setCoords({ lat, lng });
+  // };
 
   return (
     <>
       <CssBaseline />
-      <Header onPlaceChanged={onPlaceChanged} onLoad={onLoad} />
+      <Header />
       <Grid container spacing={3} style={{ width: '100%' }}>
         <Grid item xs={12} md={4}>
           <List
