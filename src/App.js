@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CssBaseline, Grid } from '@material-ui/core';
 
-import { getPlacesData, getWeatherData } from '../src/api/travelAdvisorAPI.js';
+import { getPlacesData, getWeatherData } from './api/travelAdvisorAPI';
 import Header from './components/Header/Header';
 import List from './components/List/List';
 import Map from './components/Map/Map';
@@ -29,9 +29,8 @@ const App = () => {
 
   useEffect(() => {
     const filtered = places.filter((place) => Number(place.rating) > rating);
-
     setFilteredPlaces(filtered);
-  }, [rating]);
+  }, [rating, places]);
 
   useEffect(() => {
     if (bounds) {
@@ -39,32 +38,43 @@ const App = () => {
 
       getWeatherData(coords.lat, coords.lng)
         .then((data) => setWeatherData(data))
-        .catch((error) => console.log(error));
+        .catch((error) => console.error('Error fetching weather data:', error));
 
       getPlacesData(type, bounds.sw, bounds.ne)
         .then((data) => {
-          setPlaces(data.filter((place) => place.name && place.num_reviews > 0));
+          if (data && Array.isArray(data)) {
+            setPlaces(data.filter((place) => place.name && place.num_reviews > 0));
+          } else {
+            console.error('Data is not an array or is undefined:', data);
+            setPlaces([]);
+          }
           setFilteredPlaces([]);
           setRating('');
           setIsLoading(false);
         })
-        .catch((error) => console.log(error));
+        .catch((error) => {
+          console.error('Error fetching places data:', error);
+          setPlaces([]);
+          setFilteredPlaces([]);
+          setRating('');
+          setIsLoading(false);
+        });
     }
-  }, [bounds, type]);
+  }, [bounds, type, coords.lat, coords.lng]);
 
-  // const onLoad = (autoC) => setAutocomplete(autoC);
+  const onLoad = (autoC) => setAutocomplete(autoC);
 
-  // const onPlaceChanged = () => {
-  //   const lat = autocomplete.getPlace().geometry.location.lat();
-  //   const lng = autocomplete.getPlace().geometry.location.lng();
+  const onPlaceChanged = () => {
+    const lat = autocomplete.getPlace().geometry.location.lat();
+    const lng = autocomplete.getPlace().geometry.location.lng();
 
-  //   setCoords({ lat, lng });
-  // };
+    setCoords({ lat, lng });
+  };
 
   return (
     <>
       <CssBaseline />
-      <Header />
+      <Header onPlaceChanged={onPlaceChanged} onLoad={onLoad} />
       <Grid container spacing={3} style={{ width: '100%' }}>
         <Grid item xs={12} md={4}>
           <List
