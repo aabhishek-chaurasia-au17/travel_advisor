@@ -1,16 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { CssBaseline, Grid } from '@material-ui/core';
+import { CssBaseline, Grid, CircularProgress } from '@material-ui/core';
+import { useLoadScript } from '@react-google-maps/api';
 
 import { getPlacesData, getWeatherData } from './api/travelAdvisorAPI';
 import Header from './components/Header/Header';
 import List from './components/List/List';
 import Map from './components/Map/Map';
 
+// Defined outside component so the array reference is stable across renders
+const GOOGLE_MAPS_LIBRARIES = ['places'];
+
 const App = () => {
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+    libraries: GOOGLE_MAPS_LIBRARIES,
+  });
+
   const [type, setType] = useState('restaurants');
   const [rating, setRating] = useState('');
 
-  const [coords, setCoords] = useState({});
+  const [coords, setCoords] = useState({ lat: 40.7128, lng: -74.006 });
   const [bounds, setBounds] = useState(null);
 
   const [weatherData, setWeatherData] = useState([]);
@@ -22,13 +31,23 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    navigator.geolocation.getCurrentPosition(({ coords: { latitude, longitude } }) => {
-      setCoords({ lat: latitude, lng: longitude });
-    });
+    navigator.geolocation.getCurrentPosition(
+      ({ coords: { latitude, longitude } }) => {
+        setCoords({ lat: latitude, lng: longitude });
+      },
+      () => {
+        // Fallback to New York City when geolocation is denied or unavailable
+        setCoords({ lat: 40.7128, lng: -74.006 });
+      },
+    );
   }, []);
 
   useEffect(() => {
-    const filtered = places.filter((place) => Number(place.rating) > rating);
+    if (!rating) {
+      setFilteredPlaces([]);
+      return;
+    }
+    const filtered = places.filter((place) => Number(place.rating) >= Number(rating));
     setFilteredPlaces(filtered);
   }, [rating, places]);
 
@@ -65,11 +84,18 @@ const App = () => {
   const onLoad = (autoC) => setAutocomplete(autoC);
 
   const onPlaceChanged = () => {
-    const lat = autocomplete.getPlace().geometry.location.lat();
-    const lng = autocomplete.getPlace().geometry.location.lng();
-
-    setCoords({ lat, lng });
+    const place = autocomplete?.getPlace();
+    if (!place?.geometry?.location) return;
+    setCoords({ lat: place.geometry.location.lat(), lng: place.geometry.location.lng() });
   };
+
+  if (!isLoaded) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress size="5rem" />
+      </div>
+    );
+  }
 
   return (
     <>

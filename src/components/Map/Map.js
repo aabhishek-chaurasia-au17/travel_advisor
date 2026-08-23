@@ -14,7 +14,7 @@ const Map = ({ coords, places, setCoords, setBounds, setChildClicked, weatherDat
   return (
     <div className={classes.mapContainer}>
       <GoogleMapReact
-        bootstrapURLKeys={{ key: process.env.REACT_APP_GOOGLE_MAP_API_KEY }}
+        bootstrapURLKeys={{ key: process.env.REACT_APP_GOOGLE_MAPS_API_KEY }}
         defaultCenter={coords}
         center={coords}
         defaultZoom={14}
@@ -26,31 +26,34 @@ const Map = ({ coords, places, setCoords, setBounds, setChildClicked, weatherDat
         }}
         onChildClick={(child) => setChildClicked(child)}
       >
-        {places.length > 0 && places.map((place, i) => (
-          <div
-            className={classes.markerContainer}
-            lat={Number(place.latitude)}
-            lng={Number(place.longitude)}
-            key={i}
-          >
-            {!matches ? (
-              <LocationOnOutlinedIcon color="primary" fontSize="large" />
-            ) : (
-              <Paper elevation={3} className={classes.paper}>
-                <Typography className={classes.typography} variant="subtitle2" gutterBottom>{place.name}</Typography>
-                <img
-                  className={classes.pointer}
-                  src={place.photo ? place.photo.images.large.url : 'https://www.foodserviceandhospitality.com/wp-content/uploads/2016/09/Restaurant-Placeholder-001.jpg'}
-                  alt={place.name}
-                />
-                <Rating name="read-only" size="small" value={Number(place.rating)} readOnly />
-              </Paper>
-            )}
-          </div>
-        ))}
+        {places.length > 0 && places.map((place, i) => {
+          if (!place.latitude || !place.longitude) return null;
+          return (
+            <div
+              className={classes.markerContainer}
+              lat={Number(place.latitude)}
+              lng={Number(place.longitude)}
+              key={place.location_id || `place-${i}`}
+            >
+              {!matches ? (
+                <LocationOnOutlinedIcon color="primary" fontSize="large" />
+              ) : (
+                <Paper elevation={3} className={classes.paper}>
+                  <Typography className={classes.typography} variant="subtitle2" gutterBottom>{place.name}</Typography>
+                  <img
+                    className={classes.pointer}
+                    src={place.photo ? place.photo.images.large.url : 'https://www.foodserviceandhospitality.com/wp-content/uploads/2016/09/Restaurant-Placeholder-001.jpg'}
+                    alt={place.name}
+                  />
+                  <Rating name="read-only" size="small" value={Number(place.rating)} readOnly />
+                </Paper>
+              )}
+            </div>
+          );
+        })}
         {weatherData?.list?.length > 0 && weatherData.list.map((data, i) => (
-          <div key={i} lat={data.coord.lat} lng={data.coord.lon}>
-            <img src={`http://openweathermap.org/img/w/${data.weather[0].icon}.png`} height="70px" alt="Weather icon" />
+          <div key={`weather-${i}`} lat={data.coord.lat} lng={data.coord.lon}>
+            <img src={`https://openweathermap.org/img/w/${data.weather[0].icon}.png`} height="70px" alt="Weather icon" />
           </div>
         ))}
       </GoogleMapReact>

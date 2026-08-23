@@ -4,6 +4,12 @@ import { CircularProgress, Grid, Typography, InputLabel, MenuItem, FormControl, 
 import PlaceDetails from '../PlaceDetails/PlaceDetails';
 import useStyles from './styles.js';
 
+const TYPE_LABELS = {
+  restaurants: 'Restaurants',
+  hotels: 'Hotels',
+  attractions: 'Attractions',
+};
+
 const List = ({ places, type, setType, rating, setRating, childClicked, isLoading }) => {
   const [elRefs, setElRefs] = useState([]);
   const classes = useStyles();
@@ -14,7 +20,7 @@ const List = ({ places, type, setType, rating, setRating, childClicked, isLoadin
 
   return (
     <div className={classes.container}>
-      <Typography variant="h4">Food & Dining around you</Typography>
+      <Typography variant="h4">{TYPE_LABELS[type] || 'Places'} around you</Typography>
       {isLoading ? (
         <div className={classes.loading}>
           <CircularProgress size="5rem" />
@@ -38,13 +44,19 @@ const List = ({ places, type, setType, rating, setRating, childClicked, isLoadin
               <MenuItem value="4.5">Above 4.5</MenuItem>
             </Select>
           </FormControl>
-          <Grid container spacing={3} className={classes.list}>
-            {places?.map((place, i) => (
-              <Grid ref={elRefs[i]} key={i} item xs={12}>
-                <PlaceDetails selected={Number(childClicked) === i} refProp={elRefs[i]} place={place} />
-              </Grid>
-            ))}
-          </Grid>
+          {!places?.length ? (
+            <Typography variant="body1" color="textSecondary" style={{ marginTop: '20px' }}>
+              No {TYPE_LABELS[type]?.toLowerCase() || 'places'} found in this area.
+            </Typography>
+          ) : (
+            <Grid container spacing={3} className={classes.list}>
+              {places.map((place, i) => (
+                <Grid ref={elRefs[i]} key={place.location_id || `place-${i}`} item xs={12}>
+                  <PlaceDetails selected={Number(childClicked) === i} refProp={elRefs[i]} place={place} />
+                </Grid>
+              ))}
+            </Grid>
+          )}
         </>
       )}
     </div>

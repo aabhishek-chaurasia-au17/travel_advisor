@@ -6,15 +6,21 @@ import Rating from '@material-ui/lab/Rating';
 
 import useStyles from './styles.js';
 
+const PLACEHOLDER_IMG = 'https://www.foodserviceandhospitality.com/wp-content/uploads/2016/09/Restaurant-Placeholder-001.jpg';
+
 const PlaceDetails = ({ place, selected, refProp }) => {
   if (selected) refProp?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const classes = useStyles();
+
+  const openUrl = (url) => {
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <Card elevation={6}>
       <CardMedia
         style={{ height: 350 }}
-        image={place.photo ? place.photo.images.large.url : 'https://www.foodserviceandhospitality.com/wp-content/uploads/2016/09/Restaurant-Placeholder-001.jpg'}
+        image={place.photo ? place.photo.images.large.url : PLACEHOLDER_IMG}
         title={place.name}
       />
       <CardContent>
@@ -23,21 +29,21 @@ const PlaceDetails = ({ place, selected, refProp }) => {
           <Rating name="read-only" value={Number(place.rating)} readOnly />
           <Typography component="legend">{place.num_reviews} review{place.num_reviews > 1 && 's'}</Typography>
         </Box>
-        <Box display="flex" justifyContent="space-between">
-          <Typography component="legend">Price</Typography>
-          <Typography gutterBottom variant="subtitle1">
-            {place.price_level}
-          </Typography>
-        </Box>
-        <Box display="flex" justifyContent="space-between">
-          <Typography component="legend">Ranking</Typography>
-          <Typography gutterBottom variant="subtitle1">
-            {place.ranking}
-          </Typography>
-        </Box>
-        {place?.awards?.map((award) => (
-          <Box display="flex" justifyContent="space-between" my={1} alignItems="center">
-            <img src={award.images.small} />
+        {place.price_level && (
+          <Box display="flex" justifyContent="space-between">
+            <Typography component="legend">Price</Typography>
+            <Typography gutterBottom variant="subtitle1">{place.price_level}</Typography>
+          </Box>
+        )}
+        {place.ranking && (
+          <Box display="flex" justifyContent="space-between">
+            <Typography component="legend">Ranking</Typography>
+            <Typography gutterBottom variant="subtitle1">{place.ranking}</Typography>
+          </Box>
+        )}
+        {place?.awards?.map((award, i) => (
+          <Box key={award.award_type || `award-${i}`} display="flex" justifyContent="space-between" my={1} alignItems="center">
+            <img src={award.images.small} alt={award.display_name} />
             <Typography variant="subtitle2" color="textSecondary">{award.display_name}</Typography>
           </Box>
         ))}
@@ -56,12 +62,16 @@ const PlaceDetails = ({ place, selected, refProp }) => {
         )}
       </CardContent>
       <CardActions>
-        <Button size="small" color="primary" onClick={() => window.open(place.web_url, '_blank')}>
-          Trip Advisor
-        </Button>
-        <Button size="small" color="primary" onClick={() => window.open(place.website, '_blank')}>
-          Website
-        </Button>
+        {place.web_url && (
+          <Button size="small" color="primary" onClick={() => openUrl(place.web_url)}>
+            Trip Advisor
+          </Button>
+        )}
+        {place.website && (
+          <Button size="small" color="primary" onClick={() => openUrl(place.website)}>
+            Website
+          </Button>
+        )}
       </CardActions>
     </Card>
   );
